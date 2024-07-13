@@ -5,39 +5,34 @@ import Ship from '../classes/ship';
 class Gamecontroller {
   #activePlayer = undefined;
   #players = undefined;
-  #allowedShips = [
-    new Ship('battleship', 4),
-    new Ship('destroyer', 3),
-    new Ship('submarine', 3),
-    new Ship('patrol', 2),
-    new Ship('patrol', 2),
-    new Ship('patrol', 2),
-    new Ship('carrier', 1),
-    new Ship('carrier', 1),
-    new Ship('carrier', 1),
-    new Ship('carrier', 1),
-  ];
-
+  #opponentPlayer = undefined;
   isGameOver = false;
 
   constructor() {
     this.#players = [
-      new Player(
-        'real',
-        new Gameboard(this.#allowedShips.length),
-        this.#allowedShips
-      ),
-      new Player(
-        'computer',
-        new Gameboard(this.#allowedShips.length),
-        this.#allowedShips
-      ),
+      new Player('real', new Gameboard(), [
+        new Ship('carrier', 5),
+        new Ship('battleship', 4),
+        new Ship('destroyer', 3),
+        new Ship('submarine', 3),
+        new Ship('patrol-boat', 2),
+      ]),
+      new Player('computer', new Gameboard(), [
+        new Ship('carrier', 5),
+        new Ship('battleship', 4),
+        new Ship('destroyer', 3),
+        new Ship('submarine', 3),
+        new Ship('patrol-boat', 2),
+      ]),
     ];
 
     this.#activePlayer = this.#players[0];
 
     console.log('Players should secretly arrange their ships.');
-    this.randomPlacement(this.#players[1]);
+  }
+
+  get opponentPlayer() {
+    return this.#opponentPlayer;
   }
 
   playRound = (coord = '') => {
@@ -56,7 +51,7 @@ class Gamecontroller {
       })`
     );
 
-    const opponentPlayer =
+    this.#opponentPlayer =
       this.#activePlayer.type === 'real' ? this.#players[1] : this.#players[0];
 
     if (this.#activePlayer.type === 'computer') {
@@ -65,26 +60,26 @@ class Gamecontroller {
 
     // validate the passed coord
     if (
-      !opponentPlayer.gameboard.getSquare(coord) ||
-      opponentPlayer.gameboard.missedShots.includes(coord) ||
-      opponentPlayer.gameboard.hits.includes(coord)
+      !this.#opponentPlayer.gameboard.getSquare(coord) ||
+      this.#opponentPlayer.gameboard.missedShots.includes(coord) ||
+      this.#opponentPlayer.gameboard.hits.includes(coord)
     ) {
       console.log('Please enter a valid coordinate');
       return;
     }
 
-    const tempHits = opponentPlayer.gameboard.hits.length;
+    const tempHits = this.#opponentPlayer.gameboard.hits.length;
 
-    opponentPlayer.gameboard.receiveAttack(coord);
+    this.#opponentPlayer.gameboard.receiveAttack(coord);
 
-    if (opponentPlayer.gameboard.hits.length > tempHits) {
-      const ship = opponentPlayer.gameboard.getSquare(coord).value;
+    if (this.#opponentPlayer.gameboard.hits.length > tempHits) {
+      const ship = this.#opponentPlayer.gameboard.getSquare(coord).value;
 
       console.log(`A hit was made on ${ship.type} ship`);
 
       ship.isSunk() && console.log(`${ship.type} got sunk`);
 
-      if (opponentPlayer.gameboard.isAllShipsSunk()) {
+      if (this.#opponentPlayer.gameboard.isAllShipsSunk()) {
         console.log(`Game OVER!`);
         console.log(`WINNER IS ${this.#activePlayer.type} PLAYER`);
         this.isGameOver = true;
@@ -93,13 +88,13 @@ class Gamecontroller {
 
       console.log(
         `${this.#activePlayer.type} player missed shots: ${
-          opponentPlayer.gameboard.missedShots
+          this.#opponentPlayer.gameboard.missedShots
         }`
       );
 
       console.log(
         `${this.#activePlayer.type} player hits: ${
-          opponentPlayer.gameboard.hits
+          this.#opponentPlayer.gameboard.hits
         }`
       );
 
@@ -108,12 +103,14 @@ class Gamecontroller {
 
     console.log(
       `${this.#activePlayer.type} player missed shots: ${
-        opponentPlayer.gameboard.missedShots
+        this.#opponentPlayer.gameboard.missedShots
       }`
     );
 
     console.log(
-      `${this.#activePlayer.type} player hits: ${opponentPlayer.gameboard.hits}`
+      `${this.#activePlayer.type} player hits: ${
+        this.#opponentPlayer.gameboard.hits
+      }`
     );
 
     this.#switchActivePlayer();
@@ -161,7 +158,7 @@ class Gamecontroller {
       }
     }
 
-    player.gameboard.printBoard();
+    // player.gameboard.printBoard();
     this.randomPlacement(player);
   }
 
@@ -175,11 +172,17 @@ class Gamecontroller {
   }
 
   isGameSetup = () => {
-    return this.#players[0].ships.length === 0 && this.#players[1];
+    return (
+      this.#players[0].ships.length === 0 && this.#players[1].ships.length === 0
+    );
   };
 
   getActivePlayer = () => {
     return this.#activePlayer;
+  };
+
+  getPlayers = () => {
+    return this.#players;
   };
 }
 

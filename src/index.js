@@ -1,4 +1,4 @@
 import './styles.css';
-import Gamecontroller from './controllers/gamecontroller';
+import ScreenController from './controllers/screencontroller';
 
-window.gameController = new Gamecontroller();
+new ScreenController();

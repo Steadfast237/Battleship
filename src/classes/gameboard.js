@@ -8,7 +8,7 @@ class Gameboard {
   #hits = [];
   #maxNumberOfShips = 0;
 
-  constructor(maxNumberOfShips) {
+  constructor() {
     for (let i = 0; i < this.#rowSize; i++) {
       const row = [];
 
@@ -136,13 +136,12 @@ class Gameboard {
       return;
     }
 
-    const ship = this.getSquare(coord).value;
-
-    ship.hit();
-
+    this.getSquare(coord).value.hit();
     this.#hits.push(coord);
 
-    if (ship.isSunk() && this.#maxNumberOfShips > 0) this.#maxNumberOfShips--;
+    if (this.getSquare(coord).value.isSunk() && this.#maxNumberOfShips > 0) {
+      this.#maxNumberOfShips--;
+    }
   };
 
   isAllShipsSunk() {
@@ -163,10 +162,6 @@ class Gameboard {
     console.table(result);
 
     return result;
-  };
-
-  printMissedShots = () => {
-    console.table(this.#missedShots);
   };
 }
 
