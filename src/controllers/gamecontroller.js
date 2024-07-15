@@ -6,23 +6,34 @@ class Gamecontroller {
   #activePlayer = undefined;
   #players = undefined;
   #opponentPlayer = undefined;
+  #lastHit = '';
   isGameOver = false;
 
   constructor() {
     this.#players = [
       new Player('real', new Gameboard(), [
-        new Ship('carrier', 5),
-        new Ship('battleship', 4),
-        new Ship('destroyer', 3),
-        new Ship('submarine', 3),
-        new Ship('patrol-boat', 2),
+        new Ship('carrier', 4),
+        new Ship('battleship', 3),
+        new Ship('battleship', 3),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
       ]),
       new Player('computer', new Gameboard(), [
-        new Ship('carrier', 5),
-        new Ship('battleship', 4),
-        new Ship('destroyer', 3),
-        new Ship('submarine', 3),
-        new Ship('patrol-boat', 2),
+        new Ship('carrier', 4),
+        new Ship('battleship', 3),
+        new Ship('battleship', 3),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
       ]),
     ];
 
@@ -38,20 +49,31 @@ class Gamecontroller {
   reset = () => {
     this.#players = [
       new Player('real', new Gameboard(), [
-        new Ship('carrier', 5),
-        new Ship('battleship', 4),
-        new Ship('destroyer', 3),
-        new Ship('submarine', 3),
-        new Ship('patrol-boat', 2),
+        new Ship('carrier', 4),
+        new Ship('battleship', 3),
+        new Ship('battleship', 3),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
       ]),
       new Player('computer', new Gameboard(), [
-        new Ship('carrier', 5),
-        new Ship('battleship', 4),
-        new Ship('destroyer', 3),
-        new Ship('submarine', 3),
-        new Ship('patrol-boat', 2),
+        new Ship('carrier', 4),
+        new Ship('battleship', 3),
+        new Ship('battleship', 3),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('destroyer', 2),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
+        new Ship('submarine', 1),
       ]),
     ];
+
     this.#activePlayer = this.#players[0];
     this.isGameOver = false;
     this.#opponentPlayer = undefined;
@@ -227,11 +249,69 @@ class Gamecontroller {
   randomComputerShot() {
     const player = this.#activePlayer;
 
+    if (this.#opponentPlayer.gameboard.hits.length > 0) {
+      const gameboard = this.#opponentPlayer.gameboard;
+      this.#lastHit =
+        this.#lastHit === ''
+          ? gameboard.hits[gameboard.hits.length - 1]
+          : this.#lastHit;
+      const ship = gameboard.getSquare(this.#lastHit).value;
+
+      if (ship && !ship.isSunk()) {
+        const row = Number(this.#lastHit.split('_')[0]);
+        const column = Number(this.#lastHit.split('_')[1]);
+
+        let topCoord = [];
+        let rightCoord = [];
+        let bottomCoord = [];
+        let leftCoord = [];
+
+        for (let i = 1; i < ship.length; i++) {
+          topCoord.push(`${row - i}_${column}`);
+          rightCoord.push(`${row}_${column + i}`);
+          bottomCoord.push(`${row + i}_${column}`);
+          leftCoord.push(`${row}_${column - i}`);
+        }
+
+        const result = [topCoord, rightCoord, bottomCoord, leftCoord].map(
+          (coordinates) => {
+            return coordinates.filter(
+              (coord) => !!this.#opponentPlayer.gameboard.getSquare(coord)
+            );
+          }
+        );
+
+        for (const coordinates of result) {
+          for (const coord of coordinates) {
+            if (gameboard.missedShots.includes(coord)) break;
+
+            if (
+              !gameboard.missedShots.includes(coord) &&
+              !gameboard.hits.includes(coord)
+            ) {
+              return coord;
+            }
+          }
+        }
+      }
+
+      this.#lastHit = '';
+    }
+
     if (player.type === 'computer') {
       const row = Math.floor(Math.random() * player.gameboard.board.length);
       const col = Math.floor(Math.random() * player.gameboard.board.length);
 
-      return `${row}_${col}`;
+      const random = `${row}_${col}`;
+
+      if (
+        !this.#opponentPlayer.gameboard.hits.includes(random) &&
+        !this.#opponentPlayer.gameboard.missedShots.includes(random)
+      ) {
+        return random;
+      }
+
+      return this.randomComputerShot();
     }
   }
 

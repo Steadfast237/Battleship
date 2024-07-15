@@ -24,6 +24,10 @@ class Gameboard {
     return this.#board;
   }
 
+  get missedShots() {
+    return this.missedShots;
+  }
+
   get hits() {
     return this.#hits;
   }
@@ -36,7 +40,12 @@ class Gameboard {
     const row = Number(rowColumn.split('_')[0]);
     const column = Number(rowColumn.split('_')[1]);
 
-    if (row > this.#board.length - 1) {
+    if (
+      row < 0 ||
+      row > this.#board.length - 1 ||
+      column < 0 ||
+      column > this.#board.length - 1
+    ) {
       return undefined;
     }
 
