@@ -5,8 +5,20 @@ class ScreenController {
   log = document.querySelector('.log');
   playerContainer = document.querySelector('.real table tbody');
   opponentContainer = document.querySelector('.computer table tbody');
+  restartButton = document.querySelector('.restart');
 
   constructor() {
+    this.init();
+    this.opponentContainer.addEventListener('click', this.handleClick);
+    this.restartButton.addEventListener('click', (e) => {
+      this.init();
+      this.restartButton.classList.add('hidden');
+    });
+  }
+
+  init = () => {
+    this.gameController.reset();
+
     const [real, computer] = this.gameController.getPlayers();
 
     this.gameController.randomPlacement(real);
@@ -14,16 +26,14 @@ class ScreenController {
 
     this.generatePlayerBoardHtml(real, this.playerContainer);
     this.generatePlayerBoardHtml(computer, this.opponentContainer);
-
-    this.opponentContainer.addEventListener('click', this.handleClick);
     this.updateScreenLog();
-  }
+  };
 
   updateScreenLog = () => {
     if (this.gameController.isGameOver) {
-      this.log.innerHTML = `GAME OVER! WINNER IS ${
-        this.gameController.getActivePlayer().type
-      } PLAYER`;
+      this.log.innerHTML = `GAME OVER! WINNER IS ${this.gameController
+        .getActivePlayer()
+        .type.toUpperCase()} PLAYER`;
       return;
     }
 
@@ -54,15 +64,15 @@ class ScreenController {
       element.textContent = '';
       element.textContent = '🎯';
     });
+
+    if (this.gameController.isGameOver) {
+      this.restartButton.classList.remove('hidden');
+    }
   };
 
   generatePlayerBoardHtml = (player, element) => {
     let markup = '';
 
-    if (player.type === 'real') {
-    }
-
-    // ${square.value === null ? '' : '.'}
     player.gameboard.board.forEach((row, rowIndex) => {
       markup += `
             <tr>

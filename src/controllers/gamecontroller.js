@@ -35,6 +35,28 @@ class Gamecontroller {
     return this.#opponentPlayer;
   }
 
+  reset = () => {
+    this.#players = [
+      new Player('real', new Gameboard(), [
+        new Ship('carrier', 5),
+        new Ship('battleship', 4),
+        new Ship('destroyer', 3),
+        new Ship('submarine', 3),
+        new Ship('patrol-boat', 2),
+      ]),
+      new Player('computer', new Gameboard(), [
+        new Ship('carrier', 5),
+        new Ship('battleship', 4),
+        new Ship('destroyer', 3),
+        new Ship('submarine', 3),
+        new Ship('patrol-boat', 2),
+      ]),
+    ];
+    this.#activePlayer = this.#players[0];
+    this.isGameOver = false;
+    this.#opponentPlayer = undefined;
+  };
+
   playRound = (coord = '') => {
     // This check is done because am still trying
     // to play the game in the console
@@ -55,7 +77,7 @@ class Gamecontroller {
       this.#activePlayer.type === 'real' ? this.#players[1] : this.#players[0];
 
     if (this.#activePlayer.type === 'computer') {
-      coord = this.randomComputerShot(this.#activePlayer);
+      coord = this.randomComputerShot();
     }
 
     // validate the passed coord
@@ -77,7 +99,47 @@ class Gamecontroller {
 
       console.log(`A hit was made on ${ship.type} ship`);
 
-      ship.isSunk() && console.log(`${ship.type} got sunk`);
+      if (ship.isSunk()) {
+        console.log(`${ship.type} got sunk`);
+
+        const row = Number(coord.split('_')[0]);
+        const column = Number(coord.split('_')[1]);
+
+        const topCoord = [coord];
+        const rightCoord = [coord];
+        const bottomCoord = [coord];
+        const leftCoord = [coord];
+        const result = [];
+
+        for (let i = 1; i < ship.length; i++) {
+          topCoord.push(`${row - i}_${column}`);
+          rightCoord.push(`${row}_${column + i}`);
+          bottomCoord.push(`${row + i}_${column}`);
+          leftCoord.push(`${row}_${column - i}`);
+        }
+
+        [...topCoord, ...rightCoord, ...bottomCoord, ...leftCoord].forEach(
+          (coord) => {
+            this.#opponentPlayer.gameboard.hits.includes(coord) &&
+              !result.includes(coord) &&
+              result.push(coord);
+          }
+        );
+
+        result.forEach((coord) =>
+          this.#opponentPlayer.gameboard
+            .getNeighbors(coord)
+            .filter(
+              (coord) =>
+                this.#opponentPlayer.gameboard.getSquare(coord).value === null
+            )
+            .forEach(
+              (coord) =>
+                !this.#opponentPlayer.gameboard.missedShots.includes(coord) &&
+                this.#opponentPlayer.gameboard.missedShots.push(coord)
+            )
+        );
+      }
 
       if (this.#opponentPlayer.gameboard.isAllShipsSunk()) {
         console.log(`Game OVER!`);
@@ -162,7 +224,9 @@ class Gamecontroller {
     this.randomPlacement(player);
   }
 
-  randomComputerShot(player) {
+  randomComputerShot() {
+    const player = this.#activePlayer;
+
     if (player.type === 'computer') {
       const row = Math.floor(Math.random() * player.gameboard.board.length);
       const col = Math.floor(Math.random() * player.gameboard.board.length);

@@ -4,7 +4,7 @@ class Gameboard {
   #rowSize = 10;
   #columnSize = 10;
   #board = [];
-  #missedShots = [];
+  missedShots = [];
   #hits = [];
   #maxNumberOfShips = 0;
 
@@ -22,10 +22,6 @@ class Gameboard {
 
   get board() {
     return this.#board;
-  }
-
-  get missedShots() {
-    return this.#missedShots;
   }
 
   get hits() {
@@ -66,7 +62,7 @@ class Gameboard {
     return arr;
   };
 
-  #getNeighbors = (coord) => {
+  getNeighbors = (coord) => {
     let neighbors = [];
 
     const coordRow = Number(coord.split('_')[0]);
@@ -114,7 +110,7 @@ class Gameboard {
         const square = this.getSquare(coord);
         return (
           square.value == null &&
-          this.#getNeighbors(coord)
+          this.getNeighbors(coord)
             .filter((coord) => !coordinates.includes(coord))
             .every((coord) => this.getSquare(coord).value === null)
         );
@@ -132,7 +128,7 @@ class Gameboard {
 
   receiveAttack = (coord) => {
     if (this.getSquare(coord).value === null) {
-      this.#missedShots.push(coord);
+      this.missedShots.push(coord);
       return;
     }
 
